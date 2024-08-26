@@ -23,6 +23,7 @@ SIMPLE!
 - Arduino (pick model which supports HID feature - Arduino Pro Micro ATmega32U4 5V 16MHz) [link](https://dratek.cz/arduino/960-leonardo-pro-micro.html)
 - PN532 NFC card reader [link](https://dratek.cz/arduino/2005-rfid-ic-ctecka-karet-13.56mhz-modul-pro-arduino-pn532-nfc.html)
 - 0,96'' OLED display [link](https://dratek.cz/arduino/891-oled-display-spi-bily.html)
+- microUSB cable
 
 Plus
 
@@ -30,3 +31,8 @@ Plus
 - 3D printer
 - Glue
 
+## Troubleshooting
+
+Basic debug can be done through serial console. Use serial monitor in arduino IDE, or putty.
+
+If something do not work, check cabling, soldering, and num lock on your keyboard.
