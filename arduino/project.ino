@@ -18,6 +18,7 @@ int scannedNFCCounter = 0;          // counter of scanned NFC tags since start
 // init var for decimal value of the NFS tag
 unsigned long decimalValue = 0;       // ID in dec
 String stringDecimalValue;            // ID in string
+String prevStringDecimalValue;        // previous ID in string
 
 void setup() {
   // keyboard HID start
@@ -71,16 +72,21 @@ void loop() {
     Serial.println();
     Serial.println("UID value complete: ");
     Serial.println(stringDecimalValue);
-    // send to keyboard
-    for (int i = 0; i < stringDecimalValue.length(); i++) {
-      // get current number
-      int digit = stringDecimalValue[i] - '0';
-      // send it to keyboard
-      typeNumber(digit);
+    // avoid repeated sending
+    if (stringDecimalValue != prevStringDecimalValue) {
+      // send to keyboard
+      for (int i = 0; i < stringDecimalValue.length(); i++) {
+        // get current number
+        int digit = stringDecimalValue[i] - '0';
+        // send it to keyboard
+        typeNumber(digit);
+      }
+      Keyboard.write(KEY_TAB);
+      //increase number of scanned NFCs
+      scannedNFCCounter++;
+      // store to history
+      prevStringDecimalValue = stringDecimalValue;
     }
-    Keyboard.write(KEY_TAB);
-    //increase number of scanned NFCs
-    scannedNFCCounter++;
     // wait 1 second before next read
     delay(1000);
   }
