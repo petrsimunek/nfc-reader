@@ -74,13 +74,15 @@ void loop() {
     Serial.println(stringDecimalValue);
     // avoid repeated sending
     if (stringDecimalValue != prevStringDecimalValue) {
-      // send to keyboard
+      // send it to keyboard - SELECT (uncomment/comment) APPROPRIATE METHOD - numpad, normal or with shift (typical for CS keyboard)
+      Keyboard.press(KEY_LEFT_SHIFT); // with shift - for czech keyboard - COMMENT THIS ROW FOR EN KEYBOARD
       for (int i = 0; i < stringDecimalValue.length(); i++) {
         // get current number
         int digit = stringDecimalValue[i] - '0';
-        // send it to keyboard
-        typeNumber(digit);
+        //typeNumberNumpad(digit);    // numpad - might not work on laptops
+        Keyboard.write(digit+48);     // normal 48 is shifting to numbers in ASCII table
       }
+      Keyboard.releaseAll();
       Keyboard.write(KEY_TAB);
       //increase number of scanned NFCs
       scannedNFCCounter++;
@@ -109,9 +111,9 @@ void displayWrite() {
   myOled.print(" NFCs");
 }
 
-void typeNumber(int digit) {
+void typeNumberNumpad(int digit) {
   // simulate numpad
-  // added this due the keyboard lang settings
+  // added this due the keyboard lang settings BUT IT WORKS ONLY ON DEKTOP COMPUTER, not on laptop due to missing numlock
   switch (digit) {
     case 0: Keyboard.write(KEY_KP_0); break;
     case 1: Keyboard.write(KEY_KP_1); break;
