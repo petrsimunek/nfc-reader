@@ -1,6 +1,8 @@
 # NFC Reader
 
-NFC card reader with display, HID functionality and 3D printed case
+NFC card reader with display, HID functionality and 3D printed case.
+
+![readers](img/readers.png)
 
 ## Motivation & backstory
 
@@ -31,6 +33,8 @@ Plus
 - 3D printer
 - Glue
 
+![first concept](img/firstConcept.png)
+
 ## Change configuration
 
 For any configuration changes you can run the `configurater/index.html` file. It is simple webpage with javascript inside. The javascript opens serial communication with the connected reader, and provides you simple GUI to change basic settings of the reader.
@@ -49,9 +53,13 @@ For any configuration changes you can run the `configurater/index.html` file. It
   - ESC
   - ENTER
 
+![configurator](img/configurator.png)
+
 ## Case
 
 Case can be printed on any 3D printer. There is no tricky part. Place the casing the text facing down on the heatbed.
+
+![slicer](img/slicer.png)
 
 Parameters for print:
 
@@ -61,6 +69,7 @@ Parameters for print:
 
 For multicolor printing enable filament change in your slicer after the first layer.
 
+![first layer](img/firstLayer.png)
 
 ## Troubleshooting
 
