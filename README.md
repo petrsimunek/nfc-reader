@@ -49,6 +49,19 @@ For any configuration changes you can run the `configurater/index.html` file. It
   - ESC
   - ENTER
 
+## Case
+
+Case can be printed on any 3D printer. There is no tricky part. Place the casing the text facing down on the heatbed.
+
+Parameters for print:
+
+- PLA (or any material) < tested on PLA
+- no supports
+- heating based on the material - default
+
+For multicolor printing enable filament change in your slicer after the first layer.
+
+
 ## Troubleshooting
 
 Basic debug can be done through serial console. Use serial monitor in arduino IDE, or putty.
