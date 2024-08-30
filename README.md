@@ -31,8 +31,26 @@ Plus
 - 3D printer
 - Glue
 
+## Change configuration
+
+For any configuration changes you can run the `configurater/index.html` file. It is simple webpage with javascript inside. The javascript opens serial communication with the connected reader, and provides you simple GUI to change basic settings of the reader.
+
+### Things you can configure
+
+- enable/disable sending code to the computer
+- keyboard mode
+  - EN - use with top row keys
+  - CS - use top row keys with Shift pressed (usable for national specific keyboard layouts)
+  - NUMPAD - use numpad keys - might not work on laptops
+- double read protection - if enabled, it won't allow you to read the same card again - it avoids sending the same card twice to the PC
+- enable/disable sending key after the code
+- define the key which should be sent after the code
+  - TAB
+  - ESC
+  - ENTER
+
 ## Troubleshooting
 
 Basic debug can be done through serial console. Use serial monitor in arduino IDE, or putty.
 
-If something do not work, check cabling, soldering, and num lock on your keyboard.
+If something do not work, check cabling, soldering, configuration through the configurator and num lock on your keyboard.

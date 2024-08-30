@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <title>NFC reader configurator</title>
+</head>
+<body>
+  
+  <div class="container-fluid">
+    <h1>NFC reader configurator</h1>
+  </div>
+  
+
+  <div class="row m-2">
+    <div class="col-sm shadow-sm p-3 m-2 bg-white rounded">
+      <h2>Control</h2>
+      <button class="btn btn-secondary" id="connect">Connect</button>
+
+      <div id="options" class="invisible">
+        <div class="shadow-sm rounded m-2 p-2">
+          <h3>Options</h3>
+          <div class="mb-3">
+            <button type="button" class="btn btn-primary" onclick="directCommand('SHOWCONFIG')">Print current configuration</button>
+            <button type="button" class="btn btn-primary" onclick="directCommand('RESTART')">Restart</button>
+            <button type="button" class="btn btn-primary" onclick="directCommand('RESET')">Reset default config</button>
+          </div>
+          <div class="mb-3">
+            <button type="button" class="btn btn-success" onclick="directCommand('CONFIG-SENDTOKEYBOARD:1')">Enable</button>
+            <button type="button" class="btn btn-danger" onclick="directCommand('CONFIG-SENDTOKEYBOARD:0')">Disable</button>
+            Send code to PC
+          </div>
+          <div class="mb-3">
+            <button type="button" class="btn btn-success" onclick="directCommand('CONFIG-SENDKEYAFTER:1')">Enable</button>
+            <button type="button" class="btn btn-danger" onclick="directCommand('CONFIG-SENDKEYAFTER:0')">Disable</button>
+            Send key after the code
+          </div>
+          <div class="mb-3">
+            Key after the code
+            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYAFTERSEND:1')">TAB</button>
+            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYAFTERSEND:2')">ENTER</button>
+            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYAFTERSEND:3')">ESCAPE</button>
+          </div>
+          <div class="mb-3">
+            Keyboard mode
+            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYBOARDMODE:1')">EN</button>
+            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYBOARDMODE:2')">CS</button>
+            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYBOARDMODE:3')">NUMPAD</button>
+          </div>
+          <div class="mb-3">
+            <button type="button" class="btn btn-success" onclick="directCommand('CONFIG-DOUBLEREADPROTECTION:1')">Enable</button>
+            <button type="button" class="btn btn-danger" onclick="directCommand('CONFIG-DOUBLEREADPROTECTION:0')">Disable</button>
+            Double read protection
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="col-sm shadow-sm p-3 m-2 bg-white rounded">
+      <h2>Serial console</h2>
+
+      <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Write command" id="input">
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" id="send">Send</button>
+        </div>
+      </div>
+
+      <pre id="output"></pre>
+    </div>
+  </div>
+  
+
+
+
+  <script>
+    let port;
+    let reader;
+    let inputDone;
+    let outputDone;
+    let inputStream;
+    let outputStream;
+
+    const connectButton = document.getElementById('connect');
+    const sendButton = document.getElementById('send');
+    const inputField = document.getElementById('input');
+    const outputArea = document.getElementById('output');
+    const options = document.getElementById('options');
+
+    connectButton.addEventListener('click', async () => {
+      if (port) {
+        await disconnect();
+        connectButton.textContent = 'Connect';
+        connectButton.className = 'btn btn-secondary';
+        options.className = 'invisible';
+
+        return;
+      }
+
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+
+        connectButton.textContent = 'Disconnect';
+        connectButton.className = 'btn btn-success';
+        options.className = 'visible';
+
+        const encoder = new TextEncoderStream();
+        outputDone = encoder.readable.pipeTo(port.writable);
+        outputStream = encoder.writable;
+
+        const decoder = new TextDecoderStream();
+        inputDone = port.readable.pipeTo(decoder.writable);
+        inputStream = decoder.readable.pipeThrough(new TransformStream(new LineBreakTransformer()));
+        reader = inputStream.getReader();
+
+        readLoop();
+      } catch (error) {
+        console.error('Connection error:', error);
+      }
+    });
+
+    sendButton.addEventListener('click', async () => {
+      const text = inputField.value;
+      if (text && outputStream) {
+        const writer = outputStream.getWriter();
+        await writer.write(text + '\n');
+        writer.releaseLock();
+        inputField.value = '';
+      }
+    });
+
+    function directCommand(command) {
+      inputField.value = command;
+      sendButton.click();
+    }
+
+    async function readLoop() {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          reader.releaseLock();
+          break;
+        }
+        outputArea.textContent += '> ' + value + '\n';
+      }
+    }
+
+    async function disconnect() {
+      if (reader) {
+        await reader.cancel();
+        await inputDone.catch(() => {});
+        reader = null;
+        inputDone = null;
+      }
+      if (outputStream) {
+        await outputStream.getWriter().close();
+        await outputDone;
+        outputStream = null;
+        outputDone = null;
+      }
+      await port.close();
+      port = null;
+    }
+
+    // helper for processing break lines
+    class LineBreakTransformer {
+      constructor() {
+        this.chunks = '';
+      }
+
+      transform(chunk, controller) {
+        this.chunks += chunk;
+        const lines = this.chunks.split('\n');
+        this.chunks = lines.pop();
+        lines.forEach(line => controller.enqueue(line));
+      }
+
+      flush(controller) {
+        controller.enqueue(this.chunks);
+      }
+    }
+  </script>
+</body>
+</html>
