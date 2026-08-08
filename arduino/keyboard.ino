@@ -23,13 +23,17 @@ void sendToKeyboard() {
 }
 
 
-// send to keyboard EN
+// send to keyboard EN (digits and hex letters A-F)
 void stkEN() {
   for (int i = 0; i < stringDecimalValue.length(); i++) {
-    // get current number
-      int digit = stringDecimalValue[i] - '0';
-      // normal 48 is shifting to numbers in ASCII table
-      Keyboard.write(digit+48);
+    char c = stringDecimalValue[i];
+    if (c >= '0' && c <= '9') {
+      Keyboard.write(c);
+    } else if (c >= 'A' && c <= 'F') {
+      Keyboard.write(c);
+    } else if (c >= 'a' && c <= 'f') {
+      Keyboard.write(c - 32); // uppercase
+    }
   }
 }
 
@@ -40,22 +44,25 @@ void stkCS() {
   Keyboard.releaseAll();
 }
 
-// send to keyboard NUMPAD
+// send to keyboard NUMPAD (hex letters fall back to top-row keys)
 void stkNUMPAD() {
   for (int i = 0; i < stringDecimalValue.length(); i++) {
-      // get current number
-      int digit = stringDecimalValue[i] - '0';
-      switch (digit) {
-        case 0: Keyboard.write(KEY_KP_0); break;
-        case 1: Keyboard.write(KEY_KP_1); break;
-        case 2: Keyboard.write(KEY_KP_2); break;
-        case 3: Keyboard.write(KEY_KP_3); break;
-        case 4: Keyboard.write(KEY_KP_4); break;
-        case 5: Keyboard.write(KEY_KP_5); break;
-        case 6: Keyboard.write(KEY_KP_6); break;
-        case 7: Keyboard.write(KEY_KP_7); break;
-        case 8: Keyboard.write(KEY_KP_8); break;
-        case 9: Keyboard.write(KEY_KP_9); break;
+      char c = stringDecimalValue[i];
+      if (c >= 'a' && c <= 'f') c = c - 32;
+      switch (c) {
+        case '0': Keyboard.write(KEY_KP_0); break;
+        case '1': Keyboard.write(KEY_KP_1); break;
+        case '2': Keyboard.write(KEY_KP_2); break;
+        case '3': Keyboard.write(KEY_KP_3); break;
+        case '4': Keyboard.write(KEY_KP_4); break;
+        case '5': Keyboard.write(KEY_KP_5); break;
+        case '6': Keyboard.write(KEY_KP_6); break;
+        case '7': Keyboard.write(KEY_KP_7); break;
+        case '8': Keyboard.write(KEY_KP_8); break;
+        case '9': Keyboard.write(KEY_KP_9); break;
+        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+          Keyboard.write(c);
+          break;
       }
   }
 }

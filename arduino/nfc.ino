@@ -1,3 +1,35 @@
+// CODE MODES
+// 1 = UID  - full UID as hex string
+// 2 = EVCH - full UID as decimal
+// 3 = ADAM - first 3 bytes reversed, as decimal
+
+String formatCode(uint8_t *uid, uint8_t uidLength) {
+  switch (configuration.codeMode) {
+    case 1: { // UID
+      String hexValue = "";
+      for (uint8_t i = 0; i < uidLength; i++) {
+        if (uid[i] < 0x10) hexValue += "0";
+        hexValue += String(uid[i], HEX);
+      }
+      hexValue.toUpperCase();
+      return hexValue;
+    }
+    case 3: { // ADAM - first 3 bytes, reversed order, as decimal
+      if (uidLength < 3) return "0";
+      unsigned long adamValue = ((unsigned long)uid[2] << 16) | ((unsigned long)uid[1] << 8) | uid[0];
+      return String(adamValue);
+    }
+    case 2: // EVCH
+    default: {
+      decimalValue = 0;
+      for (uint8_t i = 0; i < uidLength; i++) {
+        decimalValue = (decimalValue << 8) | uid[i];
+      }
+      return String(decimalValue);
+    }
+  }
+}
+
 void readNfc() {
   // init vars, where the results will be stored
   boolean success;                          // successfull reading
@@ -12,11 +44,12 @@ void readNfc() {
     Serial.print("STATUS-NFC UID value: ");
     for (uint8_t i = 0; i < uidLength; i++) {
       Serial.print(" 0x"); Serial.print(uid[i], HEX);
-      decimalValue = (decimalValue << 8) | uid[i];
     }
-    stringDecimalValue = String(decimalValue);
     Serial.println();
-    Serial.print("STATUS-NFC UID value decimal: ");
+    stringDecimalValue = formatCode(uid, uidLength);
+    Serial.print("STATUS-NFC code (mode ");
+    Serial.print(configuration.codeMode);
+    Serial.print("): ");
     Serial.println(stringDecimalValue);
     // avoid repeated sending
     if (configuration.doubleReadProtection && (stringDecimalValue == prevStringDecimalValue)) {

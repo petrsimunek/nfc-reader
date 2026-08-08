@@ -15,6 +15,7 @@ struct config
   int keyAfterSend;
   int keyboardMode;
   bool doubleReadProtection;
+  int codeMode;               // 1 = UID, 2 = EVCH, 3 = ADAM
 };
 // global variable for configuration
 config configuration;

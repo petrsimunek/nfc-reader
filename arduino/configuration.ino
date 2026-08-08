@@ -5,10 +5,18 @@ bool defaultSendKeyAfter = true;
 int defaultKeyAfterSend = 1;
 int defaultKeyboardMode = 1;
 bool defaultDoubleReadProtection = true;
+int defaultCodeMode = 2; // EVCH
 
 // EEPROM is empty?
 bool isFirstRun() {
   return EEPROM.read(0) == 0xFF;
+}
+
+// keep config values in valid ranges (e.g. after firmware upgrade)
+void sanitizeConfig() {
+  if (configuration.codeMode < 1 || configuration.codeMode > 3) {
+    configuration.codeMode = defaultCodeMode;
+  }
 }
 
 // function for printing current configuration to serial console
@@ -16,6 +24,7 @@ void printCurrentConfig() {
   Serial.println("STATUS-Current configuration:");
   // get from EEPROM
   EEPROM.get(1, configuration);
+  sanitizeConfig();
   // serial print every config value
   Serial.print("CONFIG-SENDTOKEYBOARD:");
   Serial.println(configuration.sendToKeyboard);
@@ -27,6 +36,8 @@ void printCurrentConfig() {
   Serial.println(configuration.keyboardMode);
   Serial.print("CONFIG-DOUBLEREADPROTECTION:");
   Serial.println(configuration.doubleReadProtection);
+  Serial.print("CONFIG-CODEMODE:");
+  Serial.println(configuration.codeMode);
 
 }
 
@@ -37,6 +48,7 @@ void setDefaultConfig() {
   configuration.keyAfterSend = defaultKeyAfterSend;
   configuration.keyboardMode = defaultKeyboardMode;
   configuration.doubleReadProtection = defaultDoubleReadProtection;
+  configuration.codeMode = defaultCodeMode;
 }
 
 // save the current configuration to the EEPROM
@@ -78,6 +90,7 @@ void newConfig(String command) {
     else if (parameter == "KEYAFTERSEND"){configuration.keyAfterSend = value.toInt();}
     else if (parameter == "KEYBOARDMODE"){configuration.keyboardMode = value.toInt();}
     else if (parameter == "DOUBLEREADPROTECTION"){configuration.doubleReadProtection = value.toInt();}
+    else if (parameter == "CODEMODE"){configuration.codeMode = value.toInt();}
     else {Serial.println("Unknown parameter.");}
     // save config to EEPROM
     saveConfig();
