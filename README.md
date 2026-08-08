@@ -24,7 +24,7 @@ SIMPLE!
 
 - Arduino (pick model which supports HID feature - Arduino Pro Micro ATmega32U4 5V 16MHz) [link](https://dratek.cz/arduino/960-leonardo-pro-micro.html)
 - PN532 NFC card reader [link](https://dratek.cz/arduino/2005-rfid-ic-ctecka-karet-13.56mhz-modul-pro-arduino-pn532-nfc.html)
-- 0,96'' OLED display [link](https://dratek.cz/arduino/891-oled-display-spi-bily.html)
+- 1,3'' OLED display [link](https://dratek.cz/arduino-platforma/3181-iic-i2c-oled-1-3-displej-128x64-bily.html)
 - microUSB cable
 
 Plus
@@ -34,6 +34,39 @@ Plus
 - Glue
 
 ![first concept](img/firstConcept.png)
+
+## Wiring
+
+Both the PN532 NFC reader and the OLED display share the same I2C bus on the Arduino Pro Micro. Set the PN532 module to **I2C mode** using its onboard switches before powering up.
+
+### Arduino Pro Micro pins
+
+| Function | Pin |
+| --- | --- |
+| SDA | **2** |
+| SCL | **3** |
+| VCC | **5V** |
+| GND | **GND** |
+
+### OLED display (I2C)
+
+| OLED | Pro Micro |
+| --- | --- |
+| VCC | 5V |
+| GND | GND |
+| SDA | 2 (SDA) |
+| SCK / SCL | 3 (SCL) |
+
+### PN532 NFC reader (I2C)
+
+| PN532 | Pro Micro |
+| --- | --- |
+| VCC | 5V |
+| GND | GND |
+| SDA | 2 (SDA) |
+| SCL | 3 (SCL) |
+
+Connect both modules in parallel on the I2C lines (SDA/SCL) and power rails (5V/GND). No other GPIO pins are used for the display or NFC reader.
 
 ## Change configuration
 
@@ -46,6 +79,10 @@ For any configuration changes you can run the `configurater/index.html` file. It
   - EN - use with top row keys
   - CS - use top row keys with Shift pressed (usable for national specific keyboard layouts)
   - NUMPAD - use numpad keys - might not work on laptops
+- code mode - format of the code sent to the PC / shown on display
+  - UID - full UID as hexadecimal (e.g. `04A3B21F`)
+  - EVCH - full UID as decimal number
+  - ADAM - first three UID bytes reversed into a 24-bit value, sent as decimal
 - double read protection - if enabled, it won't allow you to read the same card again - it avoids sending the same card twice to the PC
 - enable/disable sending key after the code
 - define the key which should be sent after the code
