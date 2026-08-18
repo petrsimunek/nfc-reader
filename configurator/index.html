@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NFC reader configurator</title>
+    <title>NFC reader configurator</title>
+    <script src="version.js"></script>
   <style>
     :root {
       --bg: #eef1f4;
@@ -43,12 +44,19 @@
 
     header {
       display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .header-bar {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
       padding: 14px 20px;
-      background: var(--ink);
-      color: #fff;
     }
 
     header h1 {
@@ -63,6 +71,21 @@
       color: #9bb0c3;
       font-size: 0.8rem;
     }
+
+    .update-banner {
+      display: none;
+      margin: 0 16px 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #ffedd5;
+      color: #9a3412;
+      border: 1px solid #fdba74;
+      font-size: 0.9rem;
+    }
+
+    .update-banner.show { display: block; }
+
+    .update-banner strong { display: block; margin-bottom: 4px; }
 
     .status {
       display: flex;
@@ -279,15 +302,18 @@
 <body>
   <div class="app">
     <header>
+      <div class="header-bar">
       <div>
         <h1>NFC reader configurator</h1>
-        <p>Ovládání čtečky, živé kódy karet a sériová konzole</p>
+        <p>Ovládání čtečky, živé kódy karet a sériová konzole · firmware <span id="expectedVersion">—</span></p>
       </div>
       <div class="status">
         <span class="dot" id="dot"></span>
         <span id="connLabel">Disconnected</span>
         <button class="btn-connect" id="connect">Connect</button>
       </div>
+      </div>
+      <div id="updateBanner" class="update-banner"></div>
     </header>
 
     <div class="workspace">
@@ -401,11 +427,16 @@
     const connLabel = document.getElementById('connLabel');
     const currentCard = document.getElementById('currentCard');
     const historyList = document.getElementById('historyList');
+    const expectedVersion = window.EXPECTED_FIRMWARE_VERSION;
+    const expectedVersionLabel = document.getElementById('expectedVersion');
+    const updateBanner = document.getElementById('updateBanner');
+    if (expectedVersionLabel) expectedVersionLabel.textContent = expectedVersion || '?';
 
     connectButton.addEventListener('click', async () => {
       if (port) {
         await disconnect();
         setConnected(false);
+        hideUpdateBanner();
         return;
       }
 
@@ -496,6 +527,18 @@
         return;
       }
 
+      const hello = line.match(/^STATUS-Hello!(?: version (.+))?$/);
+      if (hello) {
+        checkFirmwareVersion((hello[1] || '').trim());
+        return;
+      }
+
+      const versionLine = line.match(/^STATUS-VERSION:(.+)$/);
+      if (versionLine) {
+        checkFirmwareVersion(versionLine[1].trim());
+        return;
+      }
+
       const uidLine = line.match(/^STATUS-NFC UID value:\s*(.+)$/);
       if (uidLine) {
         const bytes = uidLine[1].trim().split(/\s+/).map((part) => parseInt(part.replace(/^0x/i, ''), 16)).filter((n) => !Number.isNaN(n));
@@ -507,6 +550,39 @@
         const last = history[0];
         if (last) showCard(last.bytes, true);
       }
+    }
+
+    function parseVersion(value) {
+      const match = String(value || '').match(/^(\d+)\.(\d+)\.(\d+)(?:-(\d+))?$/);
+      if (!match) return null;
+      return [Number(match[1]), Number(match[2]), Number(match[3]), Number(match[4] || 0)];
+    }
+
+    function isOlderVersion(installed, expected) {
+      const a = parseVersion(installed);
+      const b = parseVersion(expected);
+      if (!a || !b) return installed !== expected;
+      for (let i = 0; i < 4; i++) {
+        if (a[i] < b[i]) return true;
+        if (a[i] > b[i]) return false;
+      }
+      return false;
+    }
+
+    function hideUpdateBanner() {
+      updateBanner.classList.remove('show');
+      updateBanner.textContent = '';
+    }
+
+    function checkFirmwareVersion(installed) {
+      if (!expectedVersion) return;
+      if (installed && !isOlderVersion(installed, expectedVersion)) {
+        hideUpdateBanner();
+        return;
+      }
+      const installedLabel = installed || 'neznámá / stará';
+      updateBanner.innerHTML = `<strong>Je potřeba aktualizovat firmware</strong>V čtečce je ${installedLabel}, aktuální verze je ${expectedVersion}. Nahrajte nový kód z Arduino IDE.`;
+      updateBanner.classList.add('show');
     }
 
     function pad2(value) {

@@ -23,9 +23,10 @@ void displayWriteInit() {
   // write text to the display
   myOled.print("NFC reader");
   myOled.setPrintPos(0, 25);
-  myOled.print("by Petr Simunek");
+  myOled.print("v");
+  myOled.print(firmwareVersion);
   myOled.setPrintPos(0, 40);
   myOled.print("petr.simunek@");
   myOled.setPrintPos(0, 55);
-    myOled.print("gmail.com");
+  myOled.print("gmail.com");
 }

@@ -1,0 +1,1 @@
+../configurator/version.js

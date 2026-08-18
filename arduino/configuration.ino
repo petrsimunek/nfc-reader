@@ -43,6 +43,8 @@ void loadConfig() {
 // function for printing current configuration to serial console
 void printCurrentConfig() {
   Serial.println("STATUS-Current configuration:");
+  Serial.print("STATUS-VERSION:");
+  Serial.println(firmwareVersion);
   Serial.print("CONFIG-SENDTOKEYBOARD:");
   Serial.println(configuration.sendToKeyboard);
   Serial.print("CONFIG-SENDKEYAFTER:");

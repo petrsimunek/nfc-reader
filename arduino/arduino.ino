@@ -6,6 +6,17 @@
 #include <U8glib.h>
 #include <avr/wdt.h>
 
+// Version lives in configurator/version.js so the web UI and firmware share it.
+#define EXPECTED_FIRMWARE_VERSION const char firmwareVersion[]
+#if __has_include("../configurator/version.js")
+#include "../configurator/version.js"
+#elif __has_include("version.h")
+#include "version.h"
+#else
+#include "version.js"
+#endif
+#undef EXPECTED_FIRMWARE_VERSION
+
 
 // config structure
 struct config
@@ -54,7 +65,8 @@ void setup() {
   } while( myOled.nextPage() );
   // greetings on serial after a small delay
   delay(3000);
-  Serial.println("STATUS-Hello!");
+  Serial.print("STATUS-Hello! version ");
+  Serial.println(firmwareVersion);
   // init configuration
   // check first run, then set the dafults and save it to the EEPROM
   if (isFirstRun()) {
