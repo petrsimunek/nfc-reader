@@ -28,7 +28,6 @@ PN532 nfc(pn532i2c);
 // init OLED display
 U8GLIB_SSD1306_128X64 myOled(U8G_I2C_OPT_NONE);
 unsigned long previousMillis = 0;   // timer for loop
-int scannedNFCCounter = 0;          // counter of scanned NFC tags since start
 
 // init var for decimal value of the NFS tag
 unsigned long decimalValue = 0;       // ID in dec

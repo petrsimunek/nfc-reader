@@ -75,8 +75,6 @@ void readNfc() {
       Serial.println("STATUS-Double reading protection.");
       return;
     }
-    //increase number of scanned NFCs
-    scannedNFCCounter++;
     // store to history
     prevStringDecimalValue = stringDecimalValue;
     if (configuration.sendToKeyboard) {

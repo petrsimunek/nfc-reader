@@ -1,17 +1,18 @@
 void displayWrite() {
   // set font (approx 15*4 chars available)
   myOled.setFont(u8g_font_unifont);
-  // set init position
   myOled.setPrintPos(0, 10);
-  // write text to the display
   myOled.print("Last NFC code:");
+  if (lastUidLength == 0) return;
   myOled.setPrintPos(0, 25);
-  myOled.print(stringDecimalValue);
+  myOled.print("UID ");
+  myOled.print(formatCode(lastUid, lastUidLength, 1));
   myOled.setPrintPos(0, 40);
-  myOled.print("Scanned:");
-  myOled.setPrintPos(40, 55);
-  myOled.print(scannedNFCCounter);
-  myOled.print(" NFCs");
+  myOled.print("EVCH ");
+  myOled.print(formatCode(lastUid, lastUidLength, 2));
+  myOled.setPrintPos(0, 55);
+  myOled.print("ADAM ");
+  myOled.print(formatCode(lastUid, lastUidLength, 3));
 }
 
 void displayWriteInit() {
