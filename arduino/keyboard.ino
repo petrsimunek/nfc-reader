@@ -8,7 +8,8 @@
 // 2 = CS
 // 3 = NUMPAD
 
-void sendCodeOnly() {
+void sendCodeOnly(String code) {
+  stringDecimalValue = code;
   switch (configuration.keyboardMode) {
     case 1: stkEN(); break;
     case 2: stkCS(); break;
@@ -18,14 +19,11 @@ void sendCodeOnly() {
 
 void sendCardModes() {
   // UID, KEYAFTER, EVCH, KEYAFTER, ADAM
-  stringDecimalValue = formatCode(lastUid, lastUidLength, 1);
-  sendCodeOnly();
+  sendCodeOnly(formatCode(lastUid, lastUidLength, 1));
   stkKEYAFTER();
-  stringDecimalValue = formatCode(lastUid, lastUidLength, 2);
-  sendCodeOnly();
+  sendCodeOnly(formatCode(lastUid, lastUidLength, 2));
   stkKEYAFTER();
-  stringDecimalValue = formatCode(lastUid, lastUidLength, 3);
-  sendCodeOnly();
+  sendCodeOnly(formatCode(lastUid, lastUidLength, 3));
   if (configuration.sendKeyAfter) {
     stkKEYAFTER();
   }
@@ -37,7 +35,7 @@ void sendToKeyboard() {
     sendCardModes();
     return;
   }
-  sendCodeOnly();
+  sendCodeOnly(stringDecimalValue);
   // send defined key after the code, if configured
   if (configuration.sendKeyAfter) {
     stkKEYAFTER();
@@ -99,4 +97,3 @@ void stkKEYAFTER() {
     case 3: Keyboard.write(KEY_ESC); break;
   }
 }
-

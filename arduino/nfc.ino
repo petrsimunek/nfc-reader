@@ -38,48 +38,76 @@ String formatCode(uint8_t *uid, uint8_t uidLength) {
 }
 
 void readNfc() {
-  // init vars, where the results will be stored
-  boolean success;                          // successfull reading
-  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // unique ID of the NFC tag
-  uint8_t uidLength;                        // length of ID
-  // start reading nearby tags, results will be stored to variables
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
-  // if the read is success, print results to serial
-  if (success) {
-    Serial.println("STATUS-NFC tag found!");
-    Serial.print("STATUS-NFC UID length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
-    Serial.print("STATUS-NFC UID value: ");
-    for (uint8_t i = 0; i < uidLength; i++) {
-      Serial.print(" 0x"); Serial.print(uid[i], HEX);
-    }
-    Serial.println();
-    lastUidLength = uidLength;
-    for (uint8_t i = 0; i < uidLength; i++) {
-      lastUid[i] = uid[i];
-    }
-    stringDecimalValue = formatCode(uid, uidLength);
-    Serial.print("STATUS-NFC code (mode ");
-    Serial.print(configuration.codeMode);
-    Serial.print("): ");
-    if (configuration.codeMode == 4) {
-      Serial.print(formatCode(uid, uidLength, 1));
-      Serial.print(" / ");
-      Serial.print(formatCode(uid, uidLength, 2));
-      Serial.print(" / ");
-      Serial.println(formatCode(uid, uidLength, 3));
-    } else {
-      Serial.println(stringDecimalValue);
-    }
-    // avoid repeated sending
-    if (configuration.doubleReadProtection && (stringDecimalValue == prevStringDecimalValue)) {
-      Serial.println("STATUS-Double reading protection.");
-      return;
-    }
-    // store to history
-    prevStringDecimalValue = stringDecimalValue;
-    if (configuration.sendToKeyboard) {
-      sendToKeyboard();
-    }
+  static uint8_t acceptedUid[10] = { 0 };
+  static uint8_t acceptedUidLength = 0;
+  static unsigned long acceptedMillis = 0;
 
+  boolean success;
+  uint8_t uid[10] = { 0 };
+  uint8_t uidLength = 0;
+  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+  if (!success) return;
+  if (uidLength > 10) uidLength = 10;
+  if (uidLength == 0) return;
+
+  Serial.println("STATUS-NFC tag found!");
+  Serial.print("STATUS-NFC UID length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
+  Serial.print("STATUS-NFC UID value: ");
+  for (uint8_t i = 0; i < uidLength; i++) {
+    Serial.print(" 0x"); Serial.print(uid[i], HEX);
+  }
+  Serial.println();
+
+  lastUidLength = uidLength;
+  for (uint8_t i = 0; i < uidLength; i++) {
+    lastUid[i] = uid[i];
+  }
+  stringDecimalValue = formatCode(uid, uidLength);
+  Serial.print("STATUS-NFC code (mode ");
+  Serial.print(configuration.codeMode);
+  Serial.print("): ");
+  if (configuration.codeMode == 4) {
+    Serial.print(formatCode(uid, uidLength, 1));
+    Serial.print(" / ");
+    Serial.print(formatCode(uid, uidLength, 2));
+    Serial.print(" / ");
+    Serial.println(formatCode(uid, uidLength, 3));
+  } else {
+    Serial.println(stringDecimalValue);
+  }
+
+  bool sameCard = (uidLength == acceptedUidLength);
+  if (sameCard) {
+    for (uint8_t i = 0; i < uidLength; i++) {
+      if (uid[i] != acceptedUid[i]) {
+        sameCard = false;
+        break;
+      }
+    }
+  }
+
+  unsigned long now = millis();
+  unsigned long elapsed = now - acceptedMillis;
+  Serial.print("STATUS-DRP enabled=");
+  Serial.print(configuration.doubleReadProtection);
+  Serial.print(" same=");
+  Serial.print(sameCard);
+  Serial.print(" ms=");
+  Serial.println(elapsed);
+
+  // same card cannot be sent again for 10 seconds
+  if (configuration.doubleReadProtection && sameCard && (elapsed < 10000UL)) {
+    Serial.println("STATUS-Double reading protection.");
+    return;
+  }
+
+  prevStringDecimalValue = stringDecimalValue;
+  acceptedUidLength = uidLength;
+  for (uint8_t i = 0; i < uidLength; i++) {
+    acceptedUid[i] = uid[i];
+  }
+  acceptedMillis = now;
+  if (configuration.sendToKeyboard) {
+    sendToKeyboard();
   }
 }

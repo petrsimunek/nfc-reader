@@ -84,7 +84,7 @@ For any configuration changes you can run the `configurater/index.html` file. It
   - EVCH - full UID as decimal number
   - ADAM - first three UID bytes reversed into a 24-bit value, sent as decimal
   - CARD - sends UID, EVCH and ADAM one after another, with the configured key (TAB/ENTER/ESC) between them
-- double read protection - if enabled, it won't allow you to read the same card again - it avoids sending the same card twice to the PC
+- double read protection - if enabled, it won't allow you to read the same card again for 10 seconds - it avoids sending the same card twice to the PC
 - enable/disable sending key after the code
 - define the key which should be sent after the code
   - TAB

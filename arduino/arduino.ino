@@ -33,7 +33,7 @@ unsigned long previousMillis = 0;   // timer for loop
 unsigned long decimalValue = 0;       // ID in dec
 String stringDecimalValue;            // ID in string
 String prevStringDecimalValue;        // previous ID in string
-uint8_t lastUid[7] = { 0, 0, 0, 0, 0, 0, 0 };
+uint8_t lastUid[10] = { 0 };
 uint8_t lastUidLength = 0;
 
 
@@ -61,6 +61,8 @@ void setup() {
     Serial.println("STATUS-First run, writing the defaults to EEPROM.");
     setDefaultConfig();
     saveConfig();
+  } else {
+    loadConfig();
   }
   printCurrentConfig();
   // start NFC communication

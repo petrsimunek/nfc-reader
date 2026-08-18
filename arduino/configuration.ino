@@ -17,15 +17,32 @@ void sanitizeConfig() {
   if (configuration.codeMode < 1 || configuration.codeMode > 4) {
     configuration.codeMode = defaultCodeMode;
   }
+  if (configuration.keyboardMode < 1 || configuration.keyboardMode > 3) {
+    configuration.keyboardMode = defaultKeyboardMode;
+  }
+  if (configuration.keyAfterSend < 1 || configuration.keyAfterSend > 3) {
+    configuration.keyAfterSend = defaultKeyAfterSend;
+  }
+  // EEPROM bools can be 0xFF after struct changes; treat garbage as default
+  if (configuration.doubleReadProtection != 0 && configuration.doubleReadProtection != 1) {
+    configuration.doubleReadProtection = defaultDoubleReadProtection;
+  }
+  if (configuration.sendToKeyboard != 0 && configuration.sendToKeyboard != 1) {
+    configuration.sendToKeyboard = defaultSendToKeyboard;
+  }
+  if (configuration.sendKeyAfter != 0 && configuration.sendKeyAfter != 1) {
+    configuration.sendKeyAfter = defaultSendKeyAfter;
+  }
+}
+
+void loadConfig() {
+  EEPROM.get(1, configuration);
+  sanitizeConfig();
 }
 
 // function for printing current configuration to serial console
 void printCurrentConfig() {
   Serial.println("STATUS-Current configuration:");
-  // get from EEPROM
-  EEPROM.get(1, configuration);
-  sanitizeConfig();
-  // serial print every config value
   Serial.print("CONFIG-SENDTOKEYBOARD:");
   Serial.println(configuration.sendToKeyboard);
   Serial.print("CONFIG-SENDKEYAFTER:");
@@ -38,7 +55,6 @@ void printCurrentConfig() {
   Serial.println(configuration.doubleReadProtection);
   Serial.print("CONFIG-CODEMODE:");
   Serial.println(configuration.codeMode);
-
 }
 
 // set default values to global configuration variable
@@ -92,6 +108,7 @@ void newConfig(String command) {
     else if (parameter == "DOUBLEREADPROTECTION"){configuration.doubleReadProtection = value.toInt();}
     else if (parameter == "CODEMODE"){configuration.codeMode = value.toInt();}
     else {Serial.println("Unknown parameter.");}
+    sanitizeConfig();
     // save config to EEPROM
     saveConfig();
     Serial.println("STATUS-New config has been set.");
