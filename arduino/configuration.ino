@@ -14,7 +14,7 @@ bool isFirstRun() {
 
 // keep config values in valid ranges (e.g. after firmware upgrade)
 void sanitizeConfig() {
-  if (configuration.codeMode < 1 || configuration.codeMode > 3) {
+  if (configuration.codeMode < 1 || configuration.codeMode > 4) {
     configuration.codeMode = defaultCodeMode;
   }
 }

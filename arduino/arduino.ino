@@ -15,7 +15,7 @@ struct config
   int keyAfterSend;
   int keyboardMode;
   bool doubleReadProtection;
-  int codeMode;               // 1 = UID, 2 = EVCH, 3 = ADAM
+  int codeMode;               // 1 = UID, 2 = EVCH, 3 = ADAM, 4 = CARD
 };
 // global variable for configuration
 config configuration;
@@ -34,6 +34,8 @@ int scannedNFCCounter = 0;          // counter of scanned NFC tags since start
 unsigned long decimalValue = 0;       // ID in dec
 String stringDecimalValue;            // ID in string
 String prevStringDecimalValue;        // previous ID in string
+uint8_t lastUid[7] = { 0, 0, 0, 0, 0, 0, 0 };
+uint8_t lastUidLength = 0;
 
 
 

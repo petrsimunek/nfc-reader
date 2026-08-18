@@ -8,14 +8,36 @@
 // 2 = CS
 // 3 = NUMPAD
 
-// general function
-void sendToKeyboard() {
-  // send to keyboard using methid based on configuration
+void sendCodeOnly() {
   switch (configuration.keyboardMode) {
     case 1: stkEN(); break;
     case 2: stkCS(); break;
     case 3: stkNUMPAD(); break;
   }
+}
+
+void sendCardModes() {
+  // UID, KEYAFTER, EVCH, KEYAFTER, ADAM
+  stringDecimalValue = formatCode(lastUid, lastUidLength, 1);
+  sendCodeOnly();
+  stkKEYAFTER();
+  stringDecimalValue = formatCode(lastUid, lastUidLength, 2);
+  sendCodeOnly();
+  stkKEYAFTER();
+  stringDecimalValue = formatCode(lastUid, lastUidLength, 3);
+  sendCodeOnly();
+  if (configuration.sendKeyAfter) {
+    stkKEYAFTER();
+  }
+}
+
+// general function
+void sendToKeyboard() {
+  if (configuration.codeMode == 4) {
+    sendCardModes();
+    return;
+  }
+  sendCodeOnly();
   // send defined key after the code, if configured
   if (configuration.sendKeyAfter) {
     stkKEYAFTER();

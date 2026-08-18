@@ -2,9 +2,10 @@
 // 1 = UID  - full UID as hex string
 // 2 = EVCH - full UID as decimal
 // 3 = ADAM - first 3 bytes reversed, as decimal
+// 4 = CARD - UID, EVCH and ADAM in sequence, KEYAFTERSEND between them
 
-String formatCode(uint8_t *uid, uint8_t uidLength) {
-  switch (configuration.codeMode) {
+String formatCode(uint8_t *uid, uint8_t uidLength, int mode) {
+  switch (mode) {
     case 1: { // UID
       String hexValue = "";
       for (uint8_t i = 0; i < uidLength; i++) {
@@ -30,6 +31,12 @@ String formatCode(uint8_t *uid, uint8_t uidLength) {
   }
 }
 
+String formatCode(uint8_t *uid, uint8_t uidLength) {
+  int mode = configuration.codeMode;
+  if (mode == 4) mode = 1; // CARD uses UID on display / history
+  return formatCode(uid, uidLength, mode);
+}
+
 void readNfc() {
   // init vars, where the results will be stored
   boolean success;                          // successfull reading
@@ -46,11 +53,23 @@ void readNfc() {
       Serial.print(" 0x"); Serial.print(uid[i], HEX);
     }
     Serial.println();
+    lastUidLength = uidLength;
+    for (uint8_t i = 0; i < uidLength; i++) {
+      lastUid[i] = uid[i];
+    }
     stringDecimalValue = formatCode(uid, uidLength);
     Serial.print("STATUS-NFC code (mode ");
     Serial.print(configuration.codeMode);
     Serial.print("): ");
-    Serial.println(stringDecimalValue);
+    if (configuration.codeMode == 4) {
+      Serial.print(formatCode(uid, uidLength, 1));
+      Serial.print(" / ");
+      Serial.print(formatCode(uid, uidLength, 2));
+      Serial.print(" / ");
+      Serial.println(formatCode(uid, uidLength, 3));
+    } else {
+      Serial.println(stringDecimalValue);
+    }
     // avoid repeated sending
     if (configuration.doubleReadProtection && (stringDecimalValue == prevStringDecimalValue)) {
       Serial.println("STATUS-Double reading protection.");
