@@ -3,83 +3,383 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <title>NFC reader configurator</title>
+  <style>
+    :root {
+      --bg: #eef1f4;
+      --panel: #ffffff;
+      --ink: #1c2430;
+      --muted: #5d6b7a;
+      --line: #d7dee6;
+      --accent: #0f766e;
+      --accent-soft: #d1f0ec;
+      --ok: #15803d;
+      --ok-bg: #dcfce7;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --console-bg: #141a22;
+      --console-ink: #c6f6d5;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 0;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      margin: 2px 0 0;
+      color: #9bb0c3;
+      font-size: 0.8rem;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6b7785;
+    }
+
+    .dot.on { background: #34d399; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.18); }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #e8eef3;
+      color: var(--ink);
+    }
+
+    button:hover { filter: brightness(0.97); }
+
+    .btn-connect { background: #334155; color: #fff; }
+    .btn-connect.on { background: var(--ok); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-success { background: var(--ok); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-ghost { background: transparent; color: #9bb0c3; border: 1px solid #3a4756; }
+    button.active {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(340px, 1fr) minmax(340px, 1fr);
+      gap: 16px;
+      padding: 16px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      min-height: 0;
+      overflow: auto;
+      box-shadow: 0 8px 24px rgba(28, 36, 48, 0.06);
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 16px 18px 12px;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .options { padding: 0 18px 18px; }
+
+    .options.hidden { display: none; }
+
+    .group {
+      display: grid;
+      gap: 8px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .group label {
+      font-size: 0.82rem;
+      font-weight: 650;
+      color: var(--ink);
+    }
+
+    .row-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .hint { color: var(--muted); font-size: 0.78rem; }
+
+    .codes { padding: 0 18px 18px; display: grid; gap: 12px; }
+
+    .current {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, var(--accent-soft), #fff);
+      border: 1px solid #b7e4dd;
+    }
+
+    .current.empty {
+      background: #f7f9fb;
+      border-color: var(--line);
+      color: var(--muted);
+      min-height: 120px;
+      place-items: center;
+      text-align: center;
+    }
+
+    .code-line {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+    }
+
+    .value { font-size: 1rem; word-break: break-all; }
+
+    .copy {
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 8px;
+      font-size: 0.72rem;
+    }
+
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: var(--ok-bg);
+      color: var(--ok);
+    }
+
+    .badge.warn { background: #ffedd5; color: var(--warn); }
+
+    .history { display: grid; gap: 8px; }
+    .history h3 {
+      margin: 8px 0 0;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: grid;
+      gap: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+    }
+
+    .history-item b { font-family: inherit; color: var(--muted); padding-right: 6px; }
+
+    .console {
+      background: var(--console-bg);
+      color: var(--console-ink);
+      min-height: 180px;
+      max-height: 28vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+    }
+
+    .console h2 { color: #93c5c0; padding: 16px 18px 12px; }
+
+    .console-bar { padding: 0 18px 10px; }
+
+    .console .input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .console input {
+      flex: 1;
+      border: 1px solid #2a3542;
+      background: #0f141a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+    }
+
+    .console pre {
+      margin: 0;
+      padding: 0 18px 14px;
+      overflow: auto;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .app { height: auto; }
+      .console { max-height: none; }
+    }
+  </style>
 </head>
 <body>
-  
-  <div class="container-fluid">
-    <h1>NFC reader configurator</h1>
-  </div>
-  
+  <div class="app">
+    <header>
+      <div>
+        <h1>NFC reader configurator</h1>
+        <p>Ovládání čtečky, živé kódy karet a sériová konzole</p>
+      </div>
+      <div class="status">
+        <span class="dot" id="dot"></span>
+        <span id="connLabel">Disconnected</span>
+        <button class="btn-connect" id="connect">Connect</button>
+      </div>
+    </header>
 
-  <div class="row m-2">
-    <div class="col-sm shadow-sm p-3 m-2 bg-white rounded">
-      <h2>Control</h2>
-      <button class="btn btn-secondary" id="connect">Connect</button>
-
-      <div id="options" class="invisible">
-        <div class="shadow-sm rounded m-2 p-2">
-          <h3>Options</h3>
-          <div class="mb-3">
-            <button type="button" class="btn btn-primary" onclick="directCommand('SHOWCONFIG')">Print current configuration</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('RESTART')">Restart</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('RESET')">Reset default config</button>
+    <div class="workspace">
+      <section class="panel">
+        <h2>Control & configuration</h2>
+        <div id="options" class="options hidden">
+          <div class="group">
+            <label>Device</label>
+            <div class="row-btns">
+              <button class="btn-primary" onclick="directCommand('SHOWCONFIG')">Show config</button>
+              <button class="btn-primary" onclick="directCommand('RESTART')">Restart</button>
+              <button class="btn-danger" onclick="directCommand('RESET')">Reset defaults</button>
+            </div>
           </div>
-          <div class="mb-3">
-            <button type="button" class="btn btn-success" onclick="directCommand('CONFIG-SENDTOKEYBOARD:1')">Enable</button>
-            <button type="button" class="btn btn-danger" onclick="directCommand('CONFIG-SENDTOKEYBOARD:0')">Disable</button>
-            Send code to PC
+          <div class="group">
+            <label>Send code to PC</label>
+            <div class="row-btns">
+              <button class="btn-success" data-cfg="SENDTOKEYBOARD" data-val="1" onclick="directCommand('CONFIG-SENDTOKEYBOARD:1')">Enable</button>
+              <button class="btn-danger" data-cfg="SENDTOKEYBOARD" data-val="0" onclick="directCommand('CONFIG-SENDTOKEYBOARD:0')">Disable</button>
+            </div>
           </div>
-          <div class="mb-3">
-            <button type="button" class="btn btn-success" onclick="directCommand('CONFIG-SENDKEYAFTER:1')">Enable</button>
-            <button type="button" class="btn btn-danger" onclick="directCommand('CONFIG-SENDKEYAFTER:0')">Disable</button>
-            Send key after the code
+          <div class="group">
+            <label>Send key after the code</label>
+            <div class="row-btns">
+              <button class="btn-success" data-cfg="SENDKEYAFTER" data-val="1" onclick="directCommand('CONFIG-SENDKEYAFTER:1')">Enable</button>
+              <button class="btn-danger" data-cfg="SENDKEYAFTER" data-val="0" onclick="directCommand('CONFIG-SENDKEYAFTER:0')">Disable</button>
+            </div>
           </div>
-          <div class="mb-3">
-            Key after the code
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYAFTERSEND:1')">TAB</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYAFTERSEND:2')">ENTER</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYAFTERSEND:3')">ESCAPE</button>
+          <div class="group">
+            <label>Key after the code</label>
+            <div class="row-btns">
+              <button class="btn-primary" data-cfg="KEYAFTERSEND" data-val="1" onclick="directCommand('CONFIG-KEYAFTERSEND:1')">TAB</button>
+              <button class="btn-primary" data-cfg="KEYAFTERSEND" data-val="2" onclick="directCommand('CONFIG-KEYAFTERSEND:2')">ENTER</button>
+              <button class="btn-primary" data-cfg="KEYAFTERSEND" data-val="3" onclick="directCommand('CONFIG-KEYAFTERSEND:3')">ESCAPE</button>
+            </div>
           </div>
-          <div class="mb-3">
-            Keyboard mode
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYBOARDMODE:1')">EN</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYBOARDMODE:2')">CS</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-KEYBOARDMODE:3')">NUMPAD</button>
+          <div class="group">
+            <label>Keyboard mode</label>
+            <div class="row-btns">
+              <button class="btn-primary" data-cfg="KEYBOARDMODE" data-val="1" onclick="directCommand('CONFIG-KEYBOARDMODE:1')">EN</button>
+              <button class="btn-primary" data-cfg="KEYBOARDMODE" data-val="2" onclick="directCommand('CONFIG-KEYBOARDMODE:2')">CS</button>
+              <button class="btn-primary" data-cfg="KEYBOARDMODE" data-val="3" onclick="directCommand('CONFIG-KEYBOARDMODE:3')">NUMPAD</button>
+            </div>
           </div>
-          <div class="mb-3">
-            Code mode
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-CODEMODE:1')">UID</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-CODEMODE:2')">EVCH</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-CODEMODE:3')">ADAM</button>
-            <button type="button" class="btn btn-primary" onclick="directCommand('CONFIG-CODEMODE:4')">CARD</button>
+          <div class="group">
+            <label>Code mode</label>
+            <div class="row-btns">
+              <button class="btn-primary" data-cfg="CODEMODE" data-val="1" onclick="directCommand('CONFIG-CODEMODE:1')">UID</button>
+              <button class="btn-primary" data-cfg="CODEMODE" data-val="2" onclick="directCommand('CONFIG-CODEMODE:2')">EVCH</button>
+              <button class="btn-primary" data-cfg="CODEMODE" data-val="3" onclick="directCommand('CONFIG-CODEMODE:3')">ADAM</button>
+              <button class="btn-primary" data-cfg="CODEMODE" data-val="4" onclick="directCommand('CONFIG-CODEMODE:4')">CARD</button>
+            </div>
+            <div class="hint">CARD pošle UID, EVCH i ADAM za sebou, mezi nimi KEYAFTERSEND</div>
           </div>
-          <div class="mb-3">
-            <button type="button" class="btn btn-success" onclick="directCommand('CONFIG-DOUBLEREADPROTECTION:1')">Enable</button>
-            <button type="button" class="btn btn-danger" onclick="directCommand('CONFIG-DOUBLEREADPROTECTION:0')">Disable</button>
-            Double read protection
+          <div class="group">
+            <label>Double read protection</label>
+            <div class="row-btns">
+              <button class="btn-success" data-cfg="DOUBLEREADPROTECTION" data-val="1" onclick="directCommand('CONFIG-DOUBLEREADPROTECTION:1')">Enable</button>
+              <button class="btn-danger" data-cfg="DOUBLEREADPROTECTION" data-val="0" onclick="directCommand('CONFIG-DOUBLEREADPROTECTION:0')">Disable</button>
+            </div>
+            <div class="hint">Stejnou kartu znovu odešle až po 10 sekundách</div>
           </div>
         </div>
-      </div>
+        <div id="optionsHint" class="options">
+          <div class="hint">Připojte čtečku tlačítkem Connect vpravo nahoře.</div>
+        </div>
+      </section>
 
+      <section class="panel">
+        <h2>Scanned codes</h2>
+        <div class="codes">
+          <div id="currentCard" class="current empty">Zatím žádná karta. Po připojení přiložte čip ke čtečce.</div>
+          <div class="history">
+            <h3>History</h3>
+            <div id="historyList" class="hint">Načtené karty se budou řadit sem.</div>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="col-sm shadow-sm p-3 m-2 bg-white rounded">
+
+    <section class="console">
       <h2>Serial console</h2>
-
-      <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Write command" id="input">
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="button" id="send">Send</button>
+      <div class="console-bar">
+        <div class="input-group">
+          <input type="text" placeholder="Write command" id="input">
+          <button class="btn-ghost" id="send">Send</button>
+          <button class="btn-ghost" id="clearConsole">Clear</button>
         </div>
       </div>
-
       <pre id="output"></pre>
-    </div>
+    </section>
   </div>
-  
-
-
 
   <script>
     let port;
@@ -88,30 +388,31 @@
     let outputDone;
     let inputStream;
     let outputStream;
+    const history = [];
+    const currentConfig = {};
 
     const connectButton = document.getElementById('connect');
     const sendButton = document.getElementById('send');
     const inputField = document.getElementById('input');
     const outputArea = document.getElementById('output');
     const options = document.getElementById('options');
+    const optionsHint = document.getElementById('optionsHint');
+    const dot = document.getElementById('dot');
+    const connLabel = document.getElementById('connLabel');
+    const currentCard = document.getElementById('currentCard');
+    const historyList = document.getElementById('historyList');
 
     connectButton.addEventListener('click', async () => {
       if (port) {
         await disconnect();
-        connectButton.textContent = 'Connect';
-        connectButton.className = 'btn btn-secondary';
-        options.className = 'invisible';
-
+        setConnected(false);
         return;
       }
 
       try {
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: 9600 });
-
-        connectButton.textContent = 'Disconnect';
-        connectButton.className = 'btn btn-success';
-        options.className = 'visible';
+        setConnected(true);
 
         const encoder = new TextEncoderStream();
         outputDone = encoder.readable.pipeTo(port.writable);
@@ -123,12 +424,30 @@
         reader = inputStream.getReader();
 
         readLoop();
+        setTimeout(() => directCommand('SHOWCONFIG'), 400);
       } catch (error) {
         console.error('Connection error:', error);
       }
     });
 
-    sendButton.addEventListener('click', async () => {
+    sendButton.addEventListener('click', sendCommand);
+    inputField.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') sendCommand();
+    });
+    document.getElementById('clearConsole').addEventListener('click', () => {
+      outputArea.textContent = '';
+    });
+
+    function setConnected(connected) {
+      connectButton.textContent = connected ? 'Disconnect' : 'Connect';
+      connectButton.classList.toggle('on', connected);
+      options.classList.toggle('hidden', !connected);
+      optionsHint.classList.toggle('hidden', connected);
+      dot.classList.toggle('on', connected);
+      connLabel.textContent = connected ? 'Connected' : 'Disconnected';
+    }
+
+    async function sendCommand() {
       const text = inputField.value;
       if (text && outputStream) {
         const writer = outputStream.getWriter();
@@ -136,9 +455,16 @@
         writer.releaseLock();
         inputField.value = '';
       }
-    });
+    }
+
+    function applyConfigValue(name, value) {
+      currentConfig[name] = String(value).trim();
+      highlightConfig();
+    }
 
     function directCommand(command) {
+      const cfg = command.match(/^CONFIG-([A-Z]+):(.+)$/);
+      if (cfg) applyConfigValue(cfg[1], cfg[2]);
       inputField.value = command;
       sendButton.click();
     }
@@ -150,8 +476,96 @@
           reader.releaseLock();
           break;
         }
-        outputArea.textContent += '> ' + value + '\n';
+        const line = value.replace(/\r/g, '');
+        outputArea.textContent += '> ' + line + '\n';
+        outputArea.scrollTop = outputArea.scrollHeight;
+        handleLine(line);
       }
+    }
+
+    function handleLine(line) {
+      const cfg = line.match(/CONFIG-([A-Z]+):(.+)$/);
+      if (cfg) {
+        applyConfigValue(cfg[1], cfg[2]);
+        return;
+      }
+
+      const changed = line.match(/Parameter:([A-Z]+), Value=(-?\d+)/);
+      if (changed) {
+        applyConfigValue(changed[1], changed[2]);
+        return;
+      }
+
+      const uidLine = line.match(/^STATUS-NFC UID value:\s*(.+)$/);
+      if (uidLine) {
+        const bytes = uidLine[1].trim().split(/\s+/).map((part) => parseInt(part.replace(/^0x/i, ''), 16)).filter((n) => !Number.isNaN(n));
+        if (bytes.length) showCard(bytes, false);
+        return;
+      }
+
+      if (line === 'STATUS-Double reading protection.') {
+        const last = history[0];
+        if (last) showCard(last.bytes, true);
+      }
+    }
+
+    function pad2(value) {
+      return value.toString(16).toUpperCase().padStart(2, '0');
+    }
+
+    function codesFromBytes(bytes) {
+      const uid = bytes.map(pad2).join('');
+      let evch = 0;
+      bytes.forEach((b) => { evch = (evch * 256) + b; });
+      const adam = bytes.length < 3 ? 0 : (bytes[2] * 65536) + (bytes[1] * 256) + bytes[0];
+      return { uid, evch: String(evch), adam: String(adam) };
+    }
+
+    function showCard(bytes, blocked) {
+      const codes = codesFromBytes(bytes);
+      const time = new Date().toLocaleTimeString();
+      currentCard.className = 'current';
+      currentCard.innerHTML = `
+        <div class="meta">
+          <span class="badge">${blocked ? 'blocked 10s' : 'scanned'}</span>
+          <span class="hint">${time} · ${bytes.length} bytes</span>
+        </div>
+        ${codeRow('UID', codes.uid)}
+        ${codeRow('EVCH', codes.evch)}
+        ${codeRow('ADAM', codes.adam)}
+      `;
+
+      if (!blocked) {
+        history.unshift({ bytes: bytes.slice(), codes, time });
+        if (history.length > 20) history.pop();
+        renderHistory();
+      }
+    }
+
+    function codeRow(label, value) {
+      return `<div class="code-line">
+        <span class="tag">${label}</span>
+        <span class="value">${value}</span>
+        <button class="copy" onclick="navigator.clipboard.writeText('${value}')">Copy</button>
+      </div>`;
+    }
+
+    function renderHistory() {
+      if (!history.length) return;
+      historyList.innerHTML = history.map((item) => `
+        <div class="history-item">
+          <div>${item.time}</div>
+          <div><b>UID</b>${item.codes.uid}</div>
+          <div><b>EVCH</b>${item.codes.evch}</div>
+          <div><b>ADAM</b>${item.codes.adam}</div>
+        </div>
+      `).join('');
+    }
+
+    function highlightConfig() {
+      document.querySelectorAll('[data-cfg]').forEach((button) => {
+        button.classList.toggle('active', currentConfig[button.dataset.cfg] === button.dataset.val);
+      });
     }
 
     async function disconnect() {
@@ -171,22 +585,15 @@
       port = null;
     }
 
-    // helper for processing break lines
     class LineBreakTransformer {
-      constructor() {
-        this.chunks = '';
-      }
-
+      constructor() { this.chunks = ''; }
       transform(chunk, controller) {
         this.chunks += chunk;
         const lines = this.chunks.split('\n');
         this.chunks = lines.pop();
-        lines.forEach(line => controller.enqueue(line));
+        lines.forEach((line) => controller.enqueue(line));
       }
-
-      flush(controller) {
-        controller.enqueue(this.chunks);
-      }
+      flush(controller) { controller.enqueue(this.chunks); }
     }
   </script>
 </body>
